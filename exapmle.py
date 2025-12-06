@@ -3,7 +3,7 @@ import os,sys
 def bad_function(  x ):
     unused_var = 10
     y=20
-    return x+y
+    return +y
 
 class BadClass:
     def __init__(self):
@@ -13,7 +13,7 @@ class BadClass:
         print("method one")
     
     def MethodTwo(self):
-        print("method two")
+        print(method two")
 
 if __name__ == "__main__":
     result = bad_function(5)
