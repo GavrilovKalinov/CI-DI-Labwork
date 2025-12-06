@@ -15,9 +15,9 @@ class TestMathFunctions(unittest.TestCase):
         self.assertEqual(multiply(3, 4), 12)
         self.assertEqual(multiply(0, 5), 0)
     
-    def test_fail_example(self):
+    #def test_fail_example(self):
         # Этот тест упадёт для демонстрации
-        self.assertEqual(add(2, 2), 5)  # Намеренная ошибка
+       # self.assertEqual(add(2, 2), 5)  # Намеренная ошибка
 
 if __name__ == '__main__':
     unittest.main()
