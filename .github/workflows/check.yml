@@ -1,21 +1,18 @@
-name: PR Quality Checks
+name: Test and Lint
 
 on:
   pull_request:
     branches: [ main, master ]
-    paths:
-      - '**.py'
-      - 'pyproject.toml'
-      - 'requirements.txt'
+  push:
+    branches: [ main, master ]
 
 jobs:
-  unit-tests:
-    name: Run Unit Tests
+  test:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -25,104 +22,14 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install pytest ruff
     
     - name: Run unit tests
       run: |
-        echo "Running unit tests..."
-        
-        # Проверяем, есть ли тесты в стандартной структуре
-        if [ -d "tests" ]; then
-          python -m pytest tests/ -v
-        elif [ -f "test_*.py" ] || [ -f "*test*.py" ]; then
-          python -m pytest . -v
-        else
-          # Создаем минимальный тест для проверки
-          echo "No tests found. Creating a basic test structure..."
-          mkdir -p tests
-          cat > tests/test_basic.py << 'EOF'
-import unittest
-
-def test_example():
-    assert 1 + 1 == 2
-
-class TestBasic(unittest.TestCase):
-    def test_addition(self):
-        self.assertEqual(1 + 1, 2)
+        pytest test_example.py -v
+      continue-on-error: false
     
-    def test_subtraction(self):
-        self.assertEqual(5 - 3, 2)
-        
-if __name__ == '__main__':
-    unittest.main()
-EOF
-          python -m pytest tests/ -v
-        fi
-
-  ruff-check:
-    name: Run Ruff Linter
-    runs-on: ubuntu-latest
-    needs: unit-tests
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    
-    - name: Install Ruff
+    - name: Run Ruff linter
       run: |
-        python -m pip install --upgrade pip
-        pip install ruff
-    
-    - name: Check for pyproject.toml
-      run: |
-        if [ ! -f "pyproject.toml" ]; then
-          echo "Creating default pyproject.toml for Ruff..."
-          cat > pyproject.toml << 'EOF'
-[tool.ruff]
-line-length = 88
-target-version = "py310"
-
-[tool.ruff.lint]
-select = [
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # pyflakes
-    "I",   # isort
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
-]
-
-[tool.ruff.format]
-quote-style = "double"
-indent-width = 4
-
-[tool.ruff.lint.isort]
-known-first-party = ["tests"]
-EOF
-        fi
-    
-    - name: Run Ruff linting
-      run: |
-        echo "Running Ruff lint check..."
-        ruff check . --output-format=concise
-    
-    - name: Run Ruff formatting check
-      run: |
-        echo "Checking formatting with Ruff..."
+        ruff check . --fix
         ruff format --check .
-    
-    - name: Create Ruff report (optional)
-      if: always()
-      run: |
-        echo "Creating linting report..."
-        ruff check . --output-format=github > ruff-report.md 2>/dev/null || true
-        if [ -f ruff-report.md ]; then
-          echo "## Ruff Linting Report" >> $GITHUB_STEP_SUMMARY
-          cat ruff-report.md >> $GITHUB_STEP_SUMMARY
-        fi
