@@ -1,0 +1,35 @@
+name: Test and Lint
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install pytest ruff  # Установка необходимых инструментов
+    
+    - name: Run unit tests
+      run: |
+        # Запуск тестов. Если ни один тест не пройдет - пайплайн упадет
+        python -m pytest --tb=short -v
+    
+    - name: Run Ruff linter
+      run: |
+        # Проверка кода с помощью Ruff
+        ruff check . --output-format=github
+        # Также можно добавить проверку форматирования:
+        # ruff format --check .
