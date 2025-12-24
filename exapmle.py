@@ -1,7 +1,7 @@
 import os,sys
 
 def bad_function(  x = 2 ): # уберем значение аргумента - ошибка
-    unused_var = 10
+    #unused_var = 10
     y=20
     return x+y #Уберем x - получим ошибку
 
